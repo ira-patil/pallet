@@ -1,0 +1,694 @@
+        function exportPalette() {
+            if (currentPalette.length === 0) {
+                alert('Please add some colors to export');
+                return;
+            }
+
+            const exportData = {
+                colors: currentPalette,
+                exported: new Date().toISOString()
+            };
+
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'color-palette.json';
+            link.click();
+            
+            URL.revokeObjectURL(url);<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Palette Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background: 
+                radial-gradient(circle at 20% 20%, #333 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, #666 0%, transparent 50%),
+                linear-gradient(135deg, #000 0%, #111 50%, #222 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            border: 3px solid #000;
+            border-radius: 0;
+            box-shadow: 
+                5px 5px 0px #ccc,
+                10px 10px 0px #999;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .header {
+            background: 
+                linear-gradient(45deg, #000 25%, transparent 25%),
+                linear-gradient(-45deg, #000 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #000 75%),
+                linear-gradient(-45deg, transparent 75%, #000 75%),
+                #fff;
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            color: #000;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            border-bottom: 3px solid #000;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            font-weight: 900;
+            color: #000;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 3px 3px 0px #ccc;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            color: #333;
+            font-size: 1.2rem;
+            position: relative;
+            z-index: 1;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .main-content {
+            padding: 50px 40px;
+            background: #f0f0f0;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 40px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .color-input-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #fff;
+            border: 3px solid #000;
+            padding: 20px;
+            border-radius: 0;
+            box-shadow: 5px 5px 0px #ccc;
+            transition: all 0.3s ease;
+        }
+
+        .color-input-group:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 7px 7px 0px #bbb;
+        }
+
+        .color-picker {
+            width: 70px;
+            height: 70px;
+            border: 3px solid #000;
+            border-radius: 0;
+            cursor: pointer;
+            box-shadow: 3px 3px 0px #999;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .color-picker:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0px #777;
+        }
+
+        .hex-input {
+            padding: 15px 20px;
+            border: 3px solid #000;
+            background: #fff;
+            border-radius: 0;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+            width: 140px;
+            color: #000;
+            font-weight: 700;
+            transition: all 0.2s ease;
+        }
+
+        .hex-input:focus {
+            outline: none;
+            background: #f0f0f0;
+            transform: translate(-2px, -2px);
+            box-shadow: 2px 2px 0px #999;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: 3px solid #000;
+            border-radius: 0;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            font-family: Arial, sans-serif;
+        }
+
+        .btn-primary {
+            background: #fff;
+            color: #000;
+            box-shadow: 3px 3px 0px #999;
+        }
+
+        .btn-primary:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0px #777;
+            background: #f0f0f0;
+        }
+
+        .btn-secondary {
+            background: #ccc;
+            color: #000;
+            box-shadow: 3px 3px 0px #999;
+        }
+
+        .btn-secondary:hover {
+            background: #bbb;
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0px #777;
+        }
+
+        .btn-success {
+            background: #90EE90;
+            color: #000;
+            box-shadow: 3px 3px 0px #999;
+        }
+
+        .btn-success:hover {
+            background: #7FDD7F;
+            transform: translate(-2px, -2px);
+            box-shadow: 5px 5px 0px #777;
+        }
+
+        .palette-container {
+            margin-bottom: 40px;
+        }
+
+        .palette-title {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: #000;
+            text-align: center;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0px #ccc;
+        }
+
+        .current-palette {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .color-card {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            border-radius: 0;
+            border: 3px solid #000;
+            box-shadow: 5px 5px 0px #999;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            overflow: hidden;
+        }
+
+        .color-card:hover {
+            transform: translate(-3px, -3px);
+            box-shadow: 8px 8px 0px #777;
+        }
+
+        .color-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .color-card:hover .color-info {
+            transform: translateY(0);
+        }
+
+        .remove-color {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            color: #dc3545;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .color-card:hover .remove-color {
+            opacity: 1;
+        }
+
+        .remove-color:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .palette-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+
+        .palette-name-input {
+            padding: 15px 25px;
+            border: 3px solid #000;
+            background: #fff;
+            border-radius: 0;
+            font-size: 16px;
+            width: 280px;
+            color: #000;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .palette-name-input:focus {
+            outline: none;
+            background: #f0f0f0;
+            transform: translate(-2px, -2px);
+            box-shadow: 2px 2px 0px #999;
+        }
+
+        .saved-palettes {
+            border-top: 3px solid #000;
+            padding-top: 50px;
+            background: #e0e0e0;
+            margin: 40px -40px -50px;
+            padding-left: 40px;
+            padding-right: 40px;
+            padding-bottom: 50px;
+        }
+
+        .saved-palettes h3 {
+            font-size: 2rem;
+            margin-bottom: 30px;
+            color: #000;
+            text-align: center;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0px #ccc;
+        }
+
+        .saved-palette-item {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .saved-palette-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .saved-palette-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .saved-palette-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .saved-palette-colors {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .saved-color-preview {
+            width: 50px;
+            height: 50px;
+            border-radius: 0;
+            border: 2px solid #000;
+            box-shadow: 2px 2px 0px #999;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .saved-color-preview:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0px #777;
+        }shadow: 
+                0 12px 30px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .controls {
+                justify-content: center;
+            }
+            
+            .color-card {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .palette-name-input {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Color Palette Generator</h1>
+            <p>Create, customize, and save your perfect color combinations</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="controls">
+                <div class="color-input-group">
+                    <input type="color" id="colorPicker" class="color-picker" value="#667eea">
+                    <input type="text" id="hexInput" class="hex-input" placeholder="#667EEA" maxlength="7">
+                </div>
+                <button class="btn btn-primary" onclick="addColor()">Add Color</button>
+                <button class="btn btn-secondary" onclick="generateRandomPalette()">Random Palette</button>
+                <button class="btn btn-secondary" onclick="clearPalette()">Clear All</button>
+            </div>
+
+            <div class="palette-container">
+                <h2 class="palette-title">Current Palette</h2>
+                <div id="currentPalette" class="current-palette">
+                    <div class="empty-state">
+                        <div style="font-size: 3rem; margin-bottom: 15px;">🎨</div>
+                        <p>Start building your palette by adding colors above</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="palette-actions">
+                <input type="text" id="paletteName" class="palette-name-input" placeholder="Enter palette name...">
+                <button class="btn btn-success" onclick="savePalette()">Save Palette</button>
+                <button class="btn btn-primary" onclick="exportPalette()">Export Colors</button>
+            </div>
+
+            <div class="saved-palettes">
+                <h3>Saved Palettes</h3>
+                <div id="savedPalettes"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPalette = [];
+        let savedPalettes = [];
+
+        // Initialize color picker and hex input synchronization
+        const colorPicker = document.getElementById('colorPicker');
+        const hexInput = document.getElementById('hexInput');
+
+        colorPicker.addEventListener('input', function() {
+            hexInput.value = this.value.toUpperCase();
+        });
+
+        hexInput.addEventListener('input', function() {
+            const hex = this.value;
+            if (/^#[0-9A-F]{6}$/i.test(hex)) {
+                colorPicker.value = hex;
+            }
+        });
+
+        hexInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addColor();
+            }
+        });
+
+        function addColor() {
+            const color = colorPicker.value;
+            if (!currentPalette.includes(color)) {
+                currentPalette.push(color);
+                renderCurrentPalette();
+            }
+        }
+
+        function removeColor(index) {
+            currentPalette.splice(index, 1);
+            renderCurrentPalette();
+        }
+
+        function renderCurrentPalette() {
+            const container = document.getElementById('currentPalette');
+            
+            if (currentPalette.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size: 3rem; margin-bottom: 15px;">🎨</div>
+                        <p>Start building your palette by adding colors above</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = currentPalette.map((color, index) => `
+                <div class="color-card" style="background-color: ${color};" onclick="copyToClipboard('${color}')">
+                    <button class="remove-color" onclick="event.stopPropagation(); removeColor(${index})">&times;</button>
+                    <div class="color-info">${color}</div>
+                </div>
+            `).join('');
+        }
+
+        function generateRandomPalette() {
+            currentPalette = [];
+            const numColors = Math.floor(Math.random() * 4) + 3; // 3-6 colors
+            
+            for (let i = 0; i < numColors; i++) {
+                const hue = Math.floor(Math.random() * 360);
+                const saturation = Math.floor(Math.random() * 50) + 50; // 50-100%
+                const lightness = Math.floor(Math.random() * 40) + 30; // 30-70%
+                
+                const color = hslToHex(hue, saturation, lightness);
+                currentPalette.push(color);
+            }
+            
+            renderCurrentPalette();
+        }
+
+        function hslToHex(h, s, l) {
+            l /= 100;
+            const a = s * Math.min(l, 1 - l) / 100;
+            const f = n => {
+                const k = (n + h / 30) % 12;
+                const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+                return Math.round(255 * color).toString(16).padStart(2, '0');
+            };
+            return `#${f(0)}${f(8)}${f(4)}`;
+        }
+
+        function clearPalette() {
+            currentPalette = [];
+            renderCurrentPalette();
+        }
+
+        function savePalette() {
+            const name = document.getElementById('paletteName').value.trim();
+            if (!name) {
+                alert('Please enter a palette name');
+                return;
+            }
+            if (currentPalette.length === 0) {
+                alert('Please add some colors to your palette');
+                return;
+            }
+
+            const palette = {
+                id: Date.now(),
+                name: name,
+                colors: [...currentPalette],
+                created: new Date().toLocaleDateString()
+            };
+
+            savedPalettes.push(palette);
+            document.getElementById('paletteName').value = '';
+            renderSavedPalettes();
+        }
+
+        function loadPalette(paletteId) {
+            const palette = savedPalettes.find(p => p.id === paletteId);
+            if (palette) {
+                currentPalette = [...palette.colors];
+                renderCurrentPalette();
+            }
+        }
+
+        function deletePalette(paletteId) {
+            if (confirm('Are you sure you want to delete this palette?')) {
+                savedPalettes = savedPalettes.filter(p => p.id !== paletteId);
+                renderSavedPalettes();
+            }
+        }
+
+        function renderSavedPalettes() {
+            const container = document.getElementById('savedPalettes');
+            
+            if (savedPalettes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size: 3rem; margin-bottom: 15px;">💾</div>
+                        <p>No saved palettes yet. Create and save your first palette!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = savedPalettes.map(palette => `
+                <div class="saved-palette-item">
+                    <div class="saved-palette-header">
+                        <div>
+                            <div class="saved-palette-name">${palette.name}</div>
+                            <small style="color: #6c757d;">Created: ${palette.created}</small>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-primary" style="padding: 8px 15px; font-size: 12px;" onclick="loadPalette(${palette.id})">Load</button>
+                            <button class="btn btn-secondary" style="padding: 8px 15px; font-size: 12px;" onclick="deletePalette(${palette.id})">Delete</button>
+                        </div>
+                    </div>
+                    <div class="saved-palette-colors">
+                        ${palette.colors.map(color => `
+                            <div class="saved-color-preview" style="background-color: ${color};" onclick="copyToClipboard('${color}')" title="${color}"></div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function exportPalette() {
+            if (currentPalette.length === 0) {
+                alert('Please add some colors to export');
+                return;
+            }
+
+            const exportData = {
+                colors: currentPalette,
+                exported: new Date().toISOString()
+            };
+
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'color-palette.json';
+            link.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Create temporary notification
+                const notification = document.createElement('div');
+                notification.textContent = `Copied ${text}!`;
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #28a745;
+                    color: white;
+                    padding: 10px 20px;
+                    border-radius: 5px;
+                    z-index: 1000;
+                    font-size: 14px;
+                `;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 2000);
+            });
+        }
+
+        // Initialize the page
+        renderCurrentPalette();
+        renderSavedPalettes();
+    </script>
+</body>
+</html>
